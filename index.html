@@ -1,0 +1,16 @@
+<div id="pem-app">
+<link rel="stylesheet" href="style.css">
+
+<div id="login" class="pem-login">
+  <div class="pem-login-box">
+    <div class="pem-login-brand"><div class="pem-logo">HI</div><h1>HORSEED INTERLOCK COMPANY</h1><p>Project Expense Management System</p></div>
+    <form id="loginForm"><label class="pem-label">Username</label><input id="loginUser" class="pem-field" value="admin" required><label class="pem-label">Password</label><input id="loginPass" class="pem-field" type="password" value="admin123" required><label class="pem-check"><input type="checkbox"> Remember me</label><button class="pem-btn pem-primary pem-login-submit">Login</button></form>
+    <button class="pem-login-link" type="button" id="forgot">Forgot Password?</button>
+  </div>
+</div>
+<div id="appShell" style="display:none;flex:1;min-width:0">
+  <aside class="pem-side"><div class="pem-brand"><div class="pem-logo">HI</div><div>HORSEED INTERLOCK<small>COMPANY</small></div></div><nav class="pem-nav"><button data-page="dashboard">▣ &nbsp; Dashboard</button><button data-page="projects">▤ &nbsp; Projects</button><button data-page="reports">▥ &nbsp; Reports</button><button data-page="settings">⚙ &nbsp; Settings</button><button data-page="logout">↪ &nbsp; Logout</button></nav></aside>
+  <section class="pem-main"><header class="pem-top"><button class="pem-mobile-menu" id="mobileMenu" type="button">☰</button><div class="pem-avatar">A</div><div class="pem-user">Ahmed Ali<small>Admin</small></div></header><main id="view" class="pem-content"></main></section>
+</div>
+<script src="script.js"></script>
+</div>
