@@ -32,7 +32,107 @@
  }
  function renderDashboard(){const tb=projects.reduce((s,p)=>s+p.budget,0),te=projects.reduce((s,p)=>s+totalExp(p),0);let rows=projects.map(p=>'<tr class="clickable" data-open="'+p.id+'"><td><b>'+p.name+'</b></td><td>'+p.id+'</td><td>'+money(p.budget)+'</td><td>'+money(totalExp(p))+'</td><td class="pem-green-t"><b>'+money(balance(p))+'</b></td><td><span class="pem-status">Active</span></td></tr>').join('');let ex=projects.flatMap(p=>p.expenses.map(e=>({p,e}))).sort((a,b)=>b.e[1].localeCompare(a.e[1])).slice(0,6).map(x=>'<tr><td>'+x.e[0]+'</td><td>'+x.p.name+'</td><td>'+x.e[2]+'</td><td>'+money(x.e[3])+'</td><td>'+x.e[1]+'</td></tr>').join('');view.innerHTML=layout('Dashboard','Overview of all projects and expenses','<button class="pem-btn pem-primary" id="quickProject">+ New Project</button>')+'<div class="pem-cards"><div class="pem-card"><div class="pem-card-label">Total Projects</div><div class="pem-card-value pem-blue">'+projects.length+'</div></div><div class="pem-card"><div class="pem-card-label">Total Budget</div><div class="pem-card-value">'+money(tb)+'</div></div><div class="pem-card"><div class="pem-card-label">Total Expenses</div><div class="pem-card-value pem-red">'+money(te)+'</div></div><div class="pem-card"><div class="pem-card-label">Remaining Balance</div><div class="pem-card-value pem-green-t">'+money(tb-te)+'</div></div></div><div class="pem-grid2"><section class="pem-panel"><div class="pem-panel-head"><h3>Recent Projects</h3><button class="pem-link" id="allProjects">View All Projects</button></div><div class="pem-table-wrap"><table class="pem-table"><thead><tr><th>Project</th><th>ID</th><th>Budget</th><th>Expenses</th><th>Balance</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div></section><section class="pem-panel"><div class="pem-panel-head"><h3>Recent Expenses</h3><button class="pem-link" id="reportLink">View Reports</button></div><div class="pem-table-wrap"><table class="pem-table"><thead><tr><th>No.</th><th>Project</th><th>Purpose</th><th>Amount</th><th>Date</th></tr></thead><tbody>'+ex+'</tbody></table></div></section></div>';bindCommon();document.getElementById('quickProject').onclick=()=>nav('create');document.getElementById('allProjects').onclick=()=>nav('projects');document.getElementById('reportLink').onclick=()=>nav('reports');view.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{selectedProject=el.dataset.open;nav('details')})}
  function renderProjects(){view.innerHTML=layout('Projects','Manage and monitor all company projects','<button class="pem-btn pem-primary" id="newProject">+ New Project</button>')+'<div class="pem-toolbar"><input id="projectSearch" class="pem-search" placeholder="Search projects..."></div><section class="pem-panel"><div class="pem-table-wrap"><table class="pem-table"><thead><tr><th>Project Name</th><th>Project ID</th><th>Budget</th><th>Expenses</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody id="projectRows"></tbody></table></div></section>';bindCommon();document.getElementById('newProject').onclick=()=>nav('create');const fill=()=>{let q=document.getElementById('projectSearch').value.toLowerCase();document.getElementById('projectRows').innerHTML=projects.filter(p=>(p.name+' '+p.id).toLowerCase().includes(q)).map(p=>'<tr><td><b>'+p.name+'</b></td><td>'+p.id+'</td><td>'+money(p.budget)+'</td><td>'+money(totalExp(p))+'</td><td class="pem-green-t"><b>'+money(balance(p))+'</b></td><td><span class="pem-status">Active</span></td><td><button class="pem-btn pem-muted viewP" data-id="'+p.id+'">View</button></td></tr>').join('')||'<tr><td colspan="7" class="pem-empty">No projects found.</td></tr>';document.querySelectorAll('.viewP').forEach(b=>b.onclick=()=>{selectedProject=b.dataset.id;nav('details')})};document.getElementById('projectSearch').oninput=fill;fill()}
- function renderCreate(){view.innerHTML=layout('Create New Project','Add a new project and assign its initial budget.','<button class="pem-btn pem-muted" id="backProjects">← Back</button>')+'<section class="pem-panel"><form id="projectForm" class="pem-formgrid"><div><label class="pem-label">Project Name *</label><input id="pn" class="pem-field" required placeholder="Enter project name"></div><div><label class="pem-label">Project ID *</label><input id="pi" class="pem-field" required placeholder="PRJ-005"></div><div><label class="pem-label">Project Budget *</label><input id="pb" class="pem-field" type="number" min="0.01" step="0.01" required placeholder="10000"></div><div></div><div class="pem-field-full"><label class="pem-label">Description</label><textarea id="pd" class="pem-field" rows="4" placeholder="Optional project description"></textarea></div><div class="pem-field-full pem-form-actions"><button type="button" class="pem-btn pem-muted" id="cancelCreate">Cancel</button><button class="pem-btn pem-primary">Save Project</button></div></form></section>';bindCommon();document.getElementById('backProjects').onclick=()=>nav('projects');document.getElementById('cancelCreate').onclick=()=>nav('projects');document.getElementById('projectForm').onsubmit=e=>{e.preventDefault();let id=document.getElementById('pi').value.trim(),name=document.getElementById('pn').value.trim(),budget=Number(document.getElementById('pb').value);if(!name||!id||!Number.isFinite(budget)||budget<=0)return showToast('Please enter valid project information.');if(projects.some(p=>p.id.toLowerCase()===id.toLowerCase()))return showToast('Project ID already exists.');projects.push({id,name,budget,desc:document.getElementById('pd').value.trim(),expenses:[]});selectedProject=id;showToast('Project created successfully.');setTimeout(()=>nav('details'),400)}}
+//NEW CHANGES ABOUT CREATING PROJECTS
+ function renderCreate(){
+  view.innerHTML=
+    layout(
+      'Create New Project',
+      'Add a new project and assign its initial budget.',
+      '<button class="pem-btn pem-muted" id="backProjects">← Back</button>'
+    )+
+    '<section class="pem-panel">'+
+      '<form id="projectForm" class="pem-formgrid">'+
+
+        '<div>'+
+          '<label class="pem-label">Project Name *</label>'+
+          '<input id="pn" class="pem-field" required placeholder="Enter project name">'+
+        '</div>'+
+
+        '<div>'+
+          '<label class="pem-label">Project ID *</label>'+
+          '<input id="pi" class="pem-field" required placeholder="PRJ-005">'+
+        '</div>'+
+
+        '<div>'+
+          '<label class="pem-label">Project Budget *</label>'+
+          '<input id="pb" class="pem-field" type="number" min="0.01" step="0.01" required placeholder="10000">'+
+        '</div>'+
+
+        '<div></div>'+
+
+        '<div class="pem-field-full">'+
+          '<label class="pem-label">Description</label>'+
+          '<textarea id="pd" class="pem-field" rows="4" placeholder="Optional project description"></textarea>'+
+        '</div>'+
+
+        '<div class="pem-field-full pem-form-actions">'+
+          '<button type="button" class="pem-btn pem-muted" id="cancelCreate">Cancel</button>'+
+          '<button class="pem-btn pem-primary">Save Project</button>'+
+        '</div>'+
+
+      '</form>'+
+    '</section>';
+
+  bindCommon();
+
+  document.getElementById('backProjects').onclick=()=>nav('projects');
+  document.getElementById('cancelCreate').onclick=()=>nav('projects');
+
+  document.getElementById('projectForm').onsubmit=async e=>{
+    e.preventDefault();
+
+    let id=document.getElementById('pi').value.trim();
+    let name=document.getElementById('pn').value.trim();
+    let budget=Number(document.getElementById('pb').value);
+    let desc=document.getElementById('pd').value.trim();
+
+    if(!name || !id || !Number.isFinite(budget) || budget<=0){
+      return showToast('Please enter valid project information.');
+    }
+
+    if(projects.some(p=>p.id.toLowerCase()===id.toLowerCase())){
+      return showToast('Project ID already exists.');
+    }
+
+    try{
+      const response=await fetch('/api/projects',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          name:name,
+          budget:budget
+        })
+      });
+
+      if(!response.ok){
+        throw new Error('Failed to create project');
+      }
+
+      const project=await response.json();
+
+      projects.push({
+        id:id,
+        name:project.name,
+        budget:Number(project.budget),
+        desc:desc,
+        expenses:[]
+      });
+
+      selectedProject=id;
+
+      showToast('Project created successfully.');
+
+      setTimeout(()=>nav('details'),400);
+
+    }catch(error){
+      console.error(error);
+      showToast('Failed to create project.');
+    }
+  };
+}
+ 
  function renderDetails(){let p=getP(selectedProject);if(!p)return nav('projects');let ex=totalExp(p),bal=balance(p),pct=used(p);let rows=p.expenses.slice().reverse().map(e=>'<tr><td>'+e[0]+'</td><td>'+e[1]+'</td><td>'+e[2]+'</td><td>'+money(e[3])+'</td><td>'+money(p.budget-p.expenses.slice(0,p.expenses.indexOf(e)+1).reduce((s,x)=>s+Number(x[3]),0))+'</td><td><button class="pem-btn pem-muted receiptBtn" data-id="'+e[0]+'">View</button></td></tr>').join('');view.innerHTML='<button class="pem-back" id="backP">← Back to Projects</button>'+layout(p.name,'Project ID: '+p.id,'<button class="pem-btn pem-green" id="addExp">+ Add Expense</button>')+'<div class="pem-cards"><div class="pem-card"><div class="pem-card-label">Project Budget</div><div class="pem-card-value">'+money(p.budget)+'</div></div><div class="pem-card"><div class="pem-card-label">Total Expenses</div><div class="pem-card-value pem-red">'+money(ex)+'</div></div><div class="pem-card"><div class="pem-card-label">Current Balance</div><div class="pem-card-value pem-green-t">'+money(bal)+'</div></div><div class="pem-card"><div class="pem-card-label">Budget Used</div><div class="pem-card-value pem-purple">'+pct.toFixed(1)+'%</div></div></div><section class="pem-panel" style="margin-bottom:16px"><div class="pem-panel-head"><h3>Budget Usage</h3><b style="font-size:11px">'+pct.toFixed(1)+'%</b></div><div class="pem-progress"><span style="width:'+pct+'%"></span></div><div style="display:flex;justify-content:space-between;font-size:10px;color:#718096"><span>'+money(ex)+' spent</span><span>'+money(bal)+' remaining</span></div></section><section class="pem-panel"><div class="pem-panel-head"><h3>Expense History</h3><button class="pem-link" id="allHistory">View All Expenses</button></div><div class="pem-table-wrap"><table class="pem-table"><thead><tr><th>Expense No.</th><th>Date</th><th>Purpose</th><th>Amount</th><th>Balance</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';bindCommon();document.getElementById('backP').onclick=()=>nav('projects');document.getElementById('addExp').onclick=()=>nav('expense');document.getElementById('allHistory').onclick=()=>nav('history');view.querySelectorAll('.receiptBtn').forEach(b=>b.onclick=()=>{selectedExpense=b.dataset.id;nav('receipt')});if(pct>=BUDGET_WARNING_LIMIT)setTimeout(()=>showLimitWarning(p),250)}
  function renderExpense(){let p=getP(selectedProject),bal=balance(p);let next=()=>{let n=Number(document.getElementById('ea').value)||0;document.getElementById('prevBal').textContent=money(bal);document.getElementById('withdrawal').textContent='-'+money(n);document.getElementById('newBal').textContent=money(bal-n);document.getElementById('newBal').style.color=n>bal?'#b42318':'#159957'};view.innerHTML='<button class="pem-back" id="backD">← Back to Project</button>'+layout('Add Project Expense',p.name+' ('+p.id+')','')+'<div class="pem-two"><section class="pem-panel"><form id="expenseForm" class="pem-formgrid"><div><label class="pem-label">Expense / Invoice No. *</label><input id="en" class="pem-field" value="EXP-'+String(Date.now()).slice(-4)+'" required></div><div><label class="pem-label">Date *</label><input id="ed" class="pem-field" type="date" value="2026-08-24" required></div><div><label class="pem-label">Amount Withdrawn *</label><input id="ea" class="pem-field" type="number" min="0.01" step="0.01" placeholder="750" required></div><div><label class="pem-label">Purpose / Reason *</label><input id="ep" class="pem-field" placeholder="Construction Materials" required></div><div class="pem-field-full"><label class="pem-label">Description</label><textarea id="edesc" class="pem-field" rows="3" placeholder="Describe what the money is for"></textarea></div><div><label class="pem-label">Taken By *</label><input id="et" class="pem-field" value="Ahmed Ali" required></div><div><label class="pem-label">Reference / Invoice</label><input id="er" class="pem-field" placeholder="INV-102"></div><div class="pem-field-full"><label class="pem-label">Attachment (prototype)</label><input class="pem-field" type="file"></div><div class="pem-field-full pem-form-actions"><button type="button" class="pem-btn pem-muted" id="cancelExp">Cancel</button><button class="pem-btn pem-green">Save Expense</button></div></form></section><aside class="pem-balance"><h3 style="margin-top:0;font-size:14px">Balance Preview</h3><div class="pem-balance-row"><span>Previous Balance</span><b id="prevBal">'+money(bal)+'</b></div><div class="pem-balance-row"><span>Withdrawal</span><b id="withdrawal" style="color:#d94a45">-$0</b></div><div class="pem-balance-row total"><span>New Balance</span><b id="newBal" class="pem-green-t">'+money(bal)+'</b></div><div class="pem-note">The system calculates the balance automatically. Withdrawals above the available project balance are blocked.</div></aside></div>';bindCommon();document.getElementById('backD').onclick=()=>nav('details');document.getElementById('cancelExp').onclick=()=>nav('details');document.getElementById('ea').oninput=next;document.getElementById('expenseForm').onsubmit=e=>{e.preventDefault();let amount=Number(document.getElementById('ea').value),no=document.getElementById('en').value.trim(),purpose=document.getElementById('ep').value.trim(),taken=document.getElementById('et').value.trim();if(!no||!purpose||!taken||!Number.isFinite(amount)||amount<=0)return showToast('Please complete all required fields.');if(p.expenses.some(x=>x[0]===no))return showToast('Expense number already exists.');if(amount>balance(p))return showToast('Insufficient project balance.');p.expenses.push([no,document.getElementById('ed').value,purpose,amount,taken,document.getElementById('edesc').value,document.getElementById('er').value]);selectedExpense=no;showToast('Expense saved. Balance updated.');if(totalExp(p)/p.budget*100>=BUDGET_WARNING_LIMIT)setTimeout(()=>showLimitWarning(p),500);setTimeout(()=>nav('receipt'),700)}}
  function renderHistory(){let p=getP(selectedProject);view.innerHTML='<button class="pem-back" id="backD">← Project: '+p.name+'</button>'+layout('Expense History',p.name+' ('+p.id+')','<button class="pem-btn pem-green" id="addE">+ Add Expense</button>')+'<div class="pem-toolbar"><input id="expenseSearch" class="pem-search" placeholder="Search expenses..."><select id="purposeFilter" class="pem-field" style="max-width:180px"><option value="">All Purposes</option><option>Materials</option><option>Labor</option><option>Transportation</option></select></div><section class="pem-panel"><div class="pem-table-wrap"><table class="pem-table"><thead><tr><th>Expense No.</th><th>Date</th><th>Purpose</th><th>Amount</th><th>Balance</th><th>Taken By</th><th>Action</th></tr></thead><tbody id="histRows"></tbody></table></div></section>';bindCommon();document.getElementById('backD').onclick=()=>nav('details');document.getElementById('addE').onclick=()=>nav('expense');const fill=()=>{let q=document.getElementById('expenseSearch').value.toLowerCase(),f=document.getElementById('purposeFilter').value,cum=0;let arr=p.expenses.map(e=>{cum+=Number(e[3]);return {e,b:p.budget-cum}}).reverse().filter(x=>(x.e.join(' ').toLowerCase().includes(q))&&(!f||x.e[2]===f));document.getElementById('histRows').innerHTML=arr.map(x=>'<tr><td>'+x.e[0]+'</td><td>'+x.e[1]+'</td><td>'+x.e[2]+'</td><td>'+money(x.e[3])+'</td><td>'+money(x.b)+'</td><td>'+x.e[4]+'</td><td><button class="pem-btn pem-muted hrec" data-id="'+x.e[0]+'">View</button></td></tr>').join('')||'<tr><td colspan="7" class="pem-empty">No expenses found.</td></tr>';document.querySelectorAll('.hrec').forEach(b=>b.onclick=()=>{selectedExpense=b.dataset.id;nav('receipt')})};document.getElementById('expenseSearch').oninput=fill;document.getElementById('purposeFilter').onchange=fill;fill()}
