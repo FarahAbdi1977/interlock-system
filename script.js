@@ -2,12 +2,7 @@
  const root=document.getElementById('pem-app');
  const login=document.getElementById('login'), shell=document.getElementById('appShell'), view=document.getElementById('view');
  let page='dashboard', selectedProject='PRJ-001', selectedExpense=null, toastTimer; const BUDGET_WARNING_LIMIT=85;
- let projects=[
-  {id:'PRJ-001',name:'Hodan Interlock Project',budget:10000,desc:'Construction of interlock roads in Hodan neighborhood.',expenses:[['EXP-001','20/08/2026','Materials',1000,'Ahmed Ali'],['EXP-002','21/08/2026','Transportation',500,'Ahmed Ali'],['EXP-003','22/08/2026','Labor',1000,'Ahmed Ali'],['EXP-004','23/08/2026','Materials',750,'Ahmed Ali']]},
-  {id:'PRJ-002',name:'Waberi Road Project',budget:50000,desc:'Road construction project.',expenses:[['EXP-005','21/08/2026','Materials',12500,'Ahmed Ali'],['EXP-006','22/08/2026','Labor',8000,'Ahmed Ali'],['EXP-007','23/08/2026','Transportation',8000,'Ahmed Ali']]},
-  {id:'PRJ-003',name:'Karaan Neighborhood',budget:40000,desc:'Neighborhood improvement project.',expenses:[['EXP-008','20/08/2026','Materials',7200,'Ahmed Ali'],['EXP-009','22/08/2026','Labor',8000,'Ahmed Ali']]},
-  {id:'PRJ-004',name:'Daynile Building',budget:50000,desc:'Building and site works.',expenses:[['EXP-010','20/08/2026','Materials',12500,'Ahmed Ali'],['EXP-011','23/08/2026','Labor',13000,'Ahmed Ali']]}
- ];
+ let projects=[];
  const money=n=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
  const getP=id=>projects.find(p=>p.id===id);
  const totalExp=p=>p.expenses.reduce((s,e)=>s+Number(e[3]),0);
