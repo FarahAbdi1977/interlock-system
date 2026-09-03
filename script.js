@@ -3,6 +3,17 @@
  const login=document.getElementById('login'), shell=document.getElementById('appShell'), view=document.getElementById('view');
  let page='dashboard', selectedProject='PRJ-001', selectedExpense=null, toastTimer; const BUDGET_WARNING_LIMIT=85;
  let projects=[];
+ async function loadProjects(){
+  const response = await fetch('/api/projects');
+  const data = await response.json();
+  projects = data.map(p => ({
+    id: String(p.id),
+    name: p.name,
+    budget: Number(p.budget),
+    desc: '',
+    expenses: []
+  }));
+}
  const money=n=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
  const getP=id=>projects.find(p=>p.id===id);
  const totalExp=p=>p.expenses.reduce((s,e)=>s+Number(e[3]),0);
@@ -19,7 +30,7 @@
     root.appendChild(box);
     document.getElementById('closeLimitWarning').onclick=()=>box.remove();
   }
- function nav(p){if(p==='logout'){shell.style.display='none';login.style.display='grid';return}page=p;root.classList.remove('pem-mobile-open');render()}
+ async function nav(p){if(p==='logout'){shell.style.display='none';login.style.display='grid';return}page=p;root.classList.remove('pem-mobile-open');await loadProjects();render()}
  function layout(head,body,actions=''){return '<div class="pem-pagehead"><div><h1>'+head+'</h1><p>'+body+'</p></div>'+actions+'</div>'}
  function render(){
   document.querySelectorAll('.pem-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
