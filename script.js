@@ -6,12 +6,26 @@
  async function loadProjects(){
   const response = await fetch('/api/projects');
   const data = await response.json();
-  projects = data.map(p => ({
-    id: String(p.id),
-    name: p.name,
-    budget: Number(p.budget),
-    desc: '',
-    expenses: []
+
+  projects = await Promise.all(data.map(async p => {
+    const expenseResponse = await fetch(`/api/projects/${p.id}/expenses`);
+    const expenseData = await expenseResponse.json();
+
+    return {
+      id: String(p.id),
+      name: p.name,
+      budget: Number(p.budget),
+      desc: '',
+      expenses: expenseData.map(e => [
+        'EXP-' + e.id,
+        e.created_at ? e.created_at.split('T')[0] : '',
+        e.description,
+        Number(e.amount),
+        '',
+        e.description,
+        ''
+      ])
+    };
   }));
 }
  const money=n=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
